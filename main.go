@@ -16,6 +16,17 @@ func main()  {
 	}
 }
 
+
+
+func initialModel() tea.Model {
+	var y, x uint
+	fmt.Printf("how many rows: ")
+	fmt.Scan(&y)
+	fmt.Printf("how many cols: ")
+	fmt.Scan(&x)
+	return model{frame: GOL.CreateState(y,x)}
+}
+
 type model struct {
     frame  GOL.State
 	courser struct{y,x int}
@@ -26,9 +37,6 @@ func (m model) Init() tea.Cmd {
     return nil
 }
 
-func initialModel() model {
-	return model{frame: GOL.CreateState(10,10)}
-}
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -57,12 +65,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.courser.x > 0 {
 				m.courser.x -= 1
 			}
+
 		case " ":
-			if m.frame[m.courser.y][m.courser.x] {
-				m.frame[m.courser.y][m.courser.x] = false
-			} else {
-				m.frame[m.courser.y][m.courser.x] = true
-			}
+			m.frame[m.courser.y][m.courser.x] = !m.frame[m.courser.y][m.courser.x]
 
 		case "enter":
 			m.frame = GOL.PlayRound(m.frame)
@@ -73,20 +78,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
     // The header
-    s := "Game Of life\n\n"
+    s := "+++++++++# Game Of life #+++++++++\n\n"
 
     // Iterate over our choices
     for y, row := range m.frame {
 		for x := range row {
 			if m.courser.y == y && m.courser.x == x {
-				s += ">"
+				s += "\033[7m>\033[0m"
 			} else {
 				s += " "
 			}
 			if m.frame[y][x] {
-				s += "\033[32m#\033[0m"
+				s += "\033[32m◼\033[0m"
 			} else {
-				s += "\033[31m*\033[0m"
+				s += "\033[90m░\033[0m"
+			}
+			if m.courser.y == y && m.courser.x == x {
+				s += ""
 			}
 		}
 		s += "\n"
