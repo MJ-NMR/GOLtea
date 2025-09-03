@@ -8,43 +8,40 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func main()  {
-	pro := tea.NewProgram(initialModel())
+func main() {
+	pro := tea.NewProgram(model{}, tea.WithAltScreen())
 	if _, err := pro.Run(); err != nil {
 		fmt.Printf("there an error : %v", err)
 		os.Exit(1)
 	}
 }
 
-
-
-func initialModel() tea.Model {
-	var y, x uint
-	fmt.Printf("how many rows: ")
-	fmt.Scan(&y)
-	fmt.Printf("how many cols: ")
-	fmt.Scan(&x)
-	return model{frame: GOL.CreateState(y,x)}
+type model struct {
+	frame   GOL.State
+	courser location
 }
 
-type model struct {
-    frame  GOL.State
-	courser struct{y,x int}
+type location struct {
+	x int
+	y int
 }
 
 func (m model) Init() tea.Cmd {
-    // Just return `nil`, which means "no I/O right now, please."
-    return nil
+	return nil
 }
-
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.frame = GOL.CreateState(uint(msg.Height-3), uint(msg.Width/2))
+		m.courser = location{0,0}
+		return m, nil
+
 	case tea.KeyMsg:
 		switch msg.String() {
 
 		case "ctrl+c", "q":
-            return m, tea.Quit
+			return m, tea.Quit
 
 		case "up", "k":
 			if m.courser.y > 0 {
@@ -73,36 +70,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.frame = GOL.PlayRound(m.frame)
 		}
 	}
-    return m, nil
+	return m, nil
 }
 
-func (m model) View() string {
-    // The header
-    s := "+++++++++# Game Of life #+++++++++\n\n"
+func (m model) View() (s string) {
 
-    // Iterate over our choices
-    for y, row := range m.frame {
+	for y, row := range m.frame {
 		for x := range row {
 			if m.courser.y == y && m.courser.x == x {
 				s += "\033[7m>\033[0m"
 			} else {
 				s += " "
 			}
+
 			if m.frame[y][x] {
 				s += "\033[32m◼\033[0m"
 			} else {
 				s += "\033[90m░\033[0m"
 			}
-			if m.courser.y == y && m.courser.x == x {
-				s += ""
-			}
 		}
 		s += "\n"
-    }
+	}
 
-    // The footer
-	s += "\nPress \033[32mq\033[0m: quit, \033[32mEnter\033[0m: next round, \033[32mSpace\033[0m: toggele cell.\n"
 
-    // Send the UI for rendering
-    return s
+	s += "\nPress \033[32mq\033[0m: quit, \033[32mEnter\033[0m: next round, \033[32mSpace\033[0m: toggele cell\n"
+
+	return s
 }
