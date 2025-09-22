@@ -48,17 +48,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.courser.y -= 1
 			}
 
-		case "down", "l":
+		case "down", "j":
 			if m.courser.y < len(m.frame)-1 {
 				m.courser.y += 1
 			}
 
-		case "right", ";":
+		case "right", "l":
 			if m.courser.x < len(m.frame[0])-1 {
 				m.courser.x += 1
 			}
 
-		case "left", "j":
+		case "left", "h":
 			if m.courser.x > 0 {
 				m.courser.x -= 1
 			}
